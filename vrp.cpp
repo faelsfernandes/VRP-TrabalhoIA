@@ -8,14 +8,16 @@
 	
 Descrição:
 Heurística de construção:
-Vizinho mais pŕoximo:
-Para construir as rotas foi utilizado o algoritmo de "vizinho mais próximo"
-que pega a menor distância a partir de uma determinada cidade.
+Vizinho mais pŕoximo dá chance:
+Para construir as rotas foi utilizado o algoritmo de "vizinho mais próximo dá chance"
+que pega a menor distância a partir do consumidor atual e assim que excede a capacidade,
+o mesmo escolhe o mais próximo seguinte ao atual e repete isso sucessivamente até encontrar
+um consumidor que respeite a capacidade. Se não encontrar, a rota é encerrada.
 
 Heurística de melhoramento:
 Busca tabu:
 Após gerar as rotas foi aplicada a busca tabu, esta que faz a troca de consumidores
-entre entre uma mesma rota ou entre duas rotas distintas de forma aleatória ou buscando
+entre entre uma mesma rota ou entre duas rotas distintas de forma aleatória buscando
 diminuir a distância final.	
 																					*/
 
@@ -202,7 +204,9 @@ vector<vector<int>> Grafo :: criaRota(deque <No*> nos)
 						auxDist = dist; //Atualiza para a melhor distância;
 						prox = i; // Atualiza a próxima cidade a ser visitada;
 					}
-				}	
+				}
+				/*else
+					break;*/
 			}		
 		}
 
