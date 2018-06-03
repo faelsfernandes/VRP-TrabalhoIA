@@ -75,7 +75,7 @@ No* Grafo:: criaNo(int cordX, int cordY, int demanda, int noConsumidores)
 void Grafo :: leArq()
 {
 	int i = 0;
-	No* nodo;
+	No* no;
 	float resultado = 0;
 	int aux = 0, aux2 = 0, aux3 = 0; //Variáveis para auxiliar a leitura;
 
@@ -85,25 +85,25 @@ void Grafo :: leArq()
 
 	//puts("Digite a coordenada X e Y do depósito");
 	scanf("%d %d", &aux, &aux2);
-	nodo = criaNo(aux, aux2, 0, noConsumidores+1);
-	nos.push_back(nodo);
+	no = criaNo(aux, aux2, 0, noConsumidores+1);
+	nos.push_back(no);
 
 	for(i = 0; i < noConsumidores; i++)
 	{
 		//puts("Digite a coordenda X e Y e a demanda do depósito");
 		scanf("%d %d %d", &aux, &aux2, &aux3);
-		nodo = criaNo(aux, aux2, aux3, noConsumidores+1);
-		nos.push_back(nodo);			
+		no = criaNo(aux, aux2, aux3, noConsumidores+1);
+		nos.push_back(no);			
 	}
 	
 	//Calcula distancia entre consumidores e distância do depósito;
 	//Percorre todos os nós;
 	for(int i = 0; i < nos.size(); i++)
 	{
-		//Cálcula distância entre o consumidor atual e os outros consumidores;
+		//Calcula distância entre o consumidor atual e os outros consumidores;
 		for(int j = 0; j < noConsumidores+1; j++)
 		{
-			//Testa se é o nó atual, se não for cálcula a distância;
+			//Testa se é o nó atual, se não for calcula a distância;
 			if(i != j)
 			{
 				nos.at(i)->distancias[j] = calculaDist(nos.at(i)->cordX, nos.at(i)->cordY, nos.at(j)->cordX, nos.at(j)->cordY);
@@ -118,162 +118,6 @@ void Grafo :: leArq()
 		}	
 		//printf("A demanda de %d é %d \n \n", nos.at(i)->indice, nos.at(i)->demanda);
 	}
-
-	resultado = resolve(nos); // Chama a função de resolução;
-	//printf("Distância = %f \n", resultado); //Imprime o resultado;
-}
-
-//Método para cálcular distância euclidiana.
-float Grafo :: calculaDist(int x1, int y1, int x2, int y2)
-{
-	//Retorna o resultado da distância euclidiana;
-	return sqrt((pow(x1 - x2, 2)) + (pow(y1 - y2, 2)));
-}
-
-//Método que checa se há algum nó possível a ser visitado;
-bool Grafo :: checaVisitado(deque<No*> nos)
-{
-	for(int i = 0; i < nos.size(); i++)
-	{
-		if(nos.at(i)->visitado == false) //Se ainda há algum nó possível, retorna verdadeiro;
-		{
-			return true; 
-		}
-	}
-	return false; //Se não retorna falso;
-}
-
-//Método de criação de rotas;
-vector<vector<int>> Grafo :: criaRota(deque <No*> nos)
-{
-	int j = 0, k = 0;	
-	int i, atual = 0, prox = 0, dist;
-	int contador = 0;
-	int auxCapacidadeVeiculo = capacidadeVeiculo;
-	float auxDist = 9999;
-	vector<int> auxCaminhos;
-	vector<vector<int>> rotas;
-
-	while(checaVisitado(nos))
-	{	
-		nos.at(atual)->visitado = true; // Marca a cidade atual como visitada;
-		prox = atual; // Atualiza a próxima cidade a ser visitada;
-		for(i = 1; i < nos.size(); i++)
-		{
-			if(nos.at(i)->visitado == false) //Percorre as cidades ligadas a cidade atual;
-			{
-				if(auxCapacidadeVeiculo - nos.at(i)->demanda >= 0) //Testa se é possível colocar carga no caminhão;
-				{
-					dist = nos.at(atual)->distancias[i]; //Salva o valor da distância da cidade atual para a selecionada;
-					if(auxDist > dist) // Verifica se a distância é menor que a anterior;
-					{
-						auxDist = dist; //Atualiza para a melhor distância;
-						prox = i; // Atualiza a próxima cidade a ser visitada;
-					}
-				}	
-			}		
-		}
-
-		if(atual != prox) // Adiciona a cidade na rota atual caso tenha passado nos testes acima;
-		{
-			auxCaminhos.push_back(atual); //Adiciona a cidade ao vetor de caminhos;
-			auxCapacidadeVeiculo -= nos.at(prox)->demanda; //Subtrai o valor da demanda da cidade adicionada da capacidade do caminhão;
-			atual = prox; // Atualizada a cidade atual;
-			auxDist = 99999; //Reseta o auxiliar de distância;
-			contador++;
-		}
-		else //Reseta os auxiliares e fecha a nova rota;
-		{
-			auxCaminhos.push_back(atual);
-			auxCapacidadeVeiculo = capacidadeVeiculo;
-			atual = 0;
-			auxDist = 99999;
-			auxCaminhos.push_back(0);
-			rotas.push_back(auxCaminhos);
-			auxCaminhos.clear();
-			contador = 0;
-		}
-	}//Fim do algoritmo de criação de rotas;
-	return rotas;
-}
-
-//Método de busca tabu;
-vector<vector<int>> Grafo:: tabu(vector<vector<int>> rotas)
-{
-	int i = 0, j = 0, k = 0;
-	while(k < 10000)
-	{
-		for(i = 0; i < rotas.size(); i++) //Percorre as rotas;
-		{
-			for(j = 1; j < rotas.at(i).size(); j++)//Percorre as cidades;
-			{
-				int auxRand = 0, auxRand2 = 0; //Auxiliares para gerar índices randômicos;
-				float auxCusto1 = 0, auxCusto2 = 0; //Auxiliares de custo para antes da troca;
-				float auxCusto3 = 0, auxCusto4 = 0; //Auxiliares de custo para depois da troca;
-				int capacidade1 = 0, capacidade2 = 0; //Auxiliares de capacidade do veículo;
-				
-				auxRand = (rand() % (rotas.size()-1))+1; //Gera uma rota aleatória baseada na quantidade de rotas;
-				auxRand2 = (rand() % (rotas.at(auxRand).size()-1))+1;//Gera uma cidade aleatória baseada no tamanho da rota gerada acima;
-			
-				//Cálcula o custo da rota 1 antes da alteração;
-				for(int l = 0; l < rotas.at(i).size()-1; l++)
-				{
-					auxCusto1 += nos.at(rotas.at(i).at(l))->distancias[rotas.at(i).at(l+1)];
-				}
-
-				//Cálcula o custo da rota 2 antes da alteração;
-				for(int l = 0; l < rotas.at(auxRand).size()-1; l++)
-				{
-					auxCusto2 += nos.at(rotas.at(auxRand).at(l))->distancias[rotas.at(auxRand).at(l+1)];
-				}
-				
-				if((rotas.at(i).at(j) == 0) || (rotas.at(auxRand).at(auxRand2) == 0)) //Testa se realmente foram selecionadas cidades e não o depósito;
-					break;					
-				else
-					swap(rotas.at(i).at(j), rotas.at(auxRand).at(auxRand2)); //Faz a troca das cidades caso tenha passado no teste/
-
-				//Faz o cálculo da demanda da rota 1 após ser alterada;
-				for(int l = 0; l < rotas.at(i).size(); l++)
-				{
-					capacidade1 += nos.at(rotas.at(i).at(l))->demanda;
-				}
-				
-				//Faz o cálculo da demanda da rota 2 após ser alterada;
-				for(int l = 0; l < rotas.at(i).size(); l++)
-				{
-					capacidade2 += nos.at(rotas.at(i).at(l))->demanda;
-				}
-				
-				//Testa se alguma das rotas têm a capacidade maior que a suportada pelo veículo;
-				if((capacidade1 > capacidadeVeiculo) || (capacidade2 > capacidadeVeiculo))
-				{
-					swap(rotas.at(i).at(j), rotas.at(auxRand).at(auxRand2)); //Se tiver, a troca entre de cidades entre as rotas é desfeita;
-					break;
-				}
-				else //Caso contrário, cálcula o custo para as duas novas rotas;
-				{
-					for(int l = 0; l < rotas.at(i).size()-1; l++)
-					{
-						auxCusto3 += nos.at(rotas.at(i).at(l))->distancias[rotas.at(i).at(l+1)];
-					}
-
-					for(int l = 0; l < rotas.at(auxRand).size()-1; l++)
-					{
-						auxCusto4 += nos.at(rotas.at(auxRand).at(l))->distancias[rotas.at(auxRand).at(l+1)];
-					}
-				}
-
-				//Testa se a soma dos custos das rotas antigas é maior que a soma dos custos das novas rotas;
-				if((auxCusto1 + auxCusto2) >= (auxCusto3 + auxCusto4)) //Se for maior, a troca de cidades entre rotas é realmente feita;
-					continue;
-				else // Se não for, a troca é desfeita;
-					swap(rotas.at(i).at(j), rotas.at(auxRand).at(auxRand2));
-			}
-		}
-		k++;
-	}//Fim da busca tabu;
-
-	return rotas;
 }
 
 // Método pai que chama os métodos de resolução do problema;
@@ -299,7 +143,7 @@ float Grafo :: resolve(deque<No*> nos)
 		cout<<endl;
 	}
 	
-	//Cálcula o custo;
+	//Calcula o custo;
 	for(i = 0; i < rotas.size(); i++)
 	{
 		for(j = 0; j < rotas.at(i).size()-1; j++)
@@ -312,6 +156,160 @@ float Grafo :: resolve(deque<No*> nos)
 	return custo;
 }
 
+//Método para calcular distância euclidiana.
+float Grafo :: calculaDist(int x1, int y1, int x2, int y2)
+{
+	//Retorna o resultado da distância euclidiana;
+	return sqrt((pow(x1 - x2, 2)) + (pow(y1 - y2, 2)));
+}
+
+//Método que checa se há algum nó possível a ser visitado;
+bool Grafo :: checaVisitado(deque<No*> nos)
+{
+	for(int i = 0; i < nos.size(); i++)
+	{
+		if(nos.at(i)->visitado == false) //Se ainda há algum nó possível, retorna verdadeiro;
+		{
+			return true; 
+		}
+	}
+	return false; //Se não retorna falso;
+}
+
+//Método de criação de rotas;
+vector<vector<int>> Grafo :: criaRota(deque <No*> nos)
+{
+	int i = 0, j = 0, k = 0;	
+	int atual = 0, prox = 0, dist = 0;
+	int auxCapacidadeVeiculo = capacidadeVeiculo;
+	float auxDist = 9999;
+	vector<int> auxCaminhos;
+	vector<vector<int>> rotas;
+
+	while(checaVisitado(nos))
+	{	
+		nos.at(atual)->visitado = true; // Marca o consumidor atual como visitado;
+		prox = atual; // Atualiza o próximo consumidor a ser visitado;
+		for(i = 1; i < nos.size(); i++)
+		{
+			if(nos.at(i)->visitado == false) //Percorre os consumidores ligados ao consumidor atual;
+			{
+				if(auxCapacidadeVeiculo - nos.at(i)->demanda >= 0) //Testa se é possível colocar carga no caminhão;
+				{
+					dist = nos.at(atual)->distancias[i]; //Salva o valor da distância do consumidor atual para o selecionado;
+					if(auxDist > dist) // Verifica se a distância é menor que a anterior;
+					{
+						auxDist = dist; //Atualiza para a melhor distância;
+						prox = i; // Atualiza a próxima cidade a ser visitada;
+					}
+				}	
+			}		
+		}
+
+		if(atual != prox) // Adiciona o consumidor na rota atual caso tenha passado nos testes acima;
+		{
+			auxCaminhos.push_back(atual); //Adiciona o consumidor ao vetor de caminhos;
+			auxCapacidadeVeiculo -= nos.at(prox)->demanda; //Subtrai o valor da demanda da cidade adicionada da capacidade do caminhão;
+			atual = prox; // Atualizada a cidade atual;
+			auxDist = 99999; //Reseta o auxiliar de distância;
+		}
+		else //Reseta os auxiliares e fecha a nova rota;
+		{
+			auxCaminhos.push_back(atual);
+			auxCapacidadeVeiculo = capacidadeVeiculo;
+			atual = 0;
+			auxDist = 99999;
+			auxCaminhos.push_back(0);
+			rotas.push_back(auxCaminhos);
+			auxCaminhos.clear();
+		}
+	}//Fim do algoritmo de criação de rotas;
+	return rotas;
+}
+
+//Método de busca tabu;
+vector<vector<int>> Grafo:: tabu(vector<vector<int>> rotas)
+{
+	int i = 0, j = 0, k = 0;
+	int auxRand, auxRand2; //Auxiliares para gerar índices para selecionar um consumidor randômico;
+	float auxDistancia1, auxDistancia2; //Auxiliares de distância para antes da troca;
+	float auxDistancia3, auxDistancia4; //Auxiliares de distância para depois da troca;
+	int capacidade1, capacidade2; //Auxiliares de capacidade do veículo;
+			
+	while(k < 10000)
+	{
+		for(i = 0; i < rotas.size(); i++) //Percorre as rotas;
+		{
+			for(j = 1; j < rotas.at(i).size(); j++)//Percorre as consumidores;
+			{
+				auxRand = 0; auxRand2 = 0; //Auxiliares para gerar índices para selecionar um consumidor randômico;
+				auxDistancia1 = 0; auxDistancia2 = 0; //Auxiliares de distância para antes da troca;
+				auxDistancia3 = 0; auxDistancia4 = 0; //Auxiliares de distância para depois da troca;
+				capacidade1 = 0; capacidade2 = 0; //Auxiliares de capacidade do veículo;*/
+
+				auxRand = (rand() % (rotas.size()-1))+1; //Gera uma rota aleatória baseada na quantidade de rotas;
+				auxRand2 = (rand() % (rotas.at(auxRand).size()-2))+1;//Gera um consumidor aleatório baseado no tamanho da rota gerada acima;
+			
+				//Calcula distância da rota 1 antes da alteração;
+				for(int l = 0; l < rotas.at(i).size()-1; l++)
+				{
+					auxDistancia1 += nos.at(rotas.at(i).at(l))->distancias[rotas.at(i).at(l+1)];
+				}
+
+				//Calcula distância da rota 2 antes da alteração;
+				for(int l = 0; l < rotas.at(auxRand).size()-1; l++)
+				{
+					auxDistancia2 += nos.at(rotas.at(auxRand).at(l))->distancias[rotas.at(auxRand).at(l+1)];
+				}
+				
+				if((rotas.at(i).at(j) == 0) || (rotas.at(auxRand).at(auxRand2) == 0)) //Testa se realmente foram selecionadaos consumidores e não o depósito;
+					break;					
+				else
+					swap(rotas.at(i).at(j), rotas.at(auxRand).at(auxRand2)); //Faz a troca dos consumidores caso tenha passado no teste/
+
+				//Faz o cálculo da demanda da rota 1 após ser alterada;
+				for(int l = 0; l < rotas.at(i).size(); l++)
+				{
+					capacidade1 += nos.at(rotas.at(i).at(l))->demanda;
+				}
+				
+				//Faz o cálculo da demanda da rota 2 após ser alterada;
+				for(int l = 0; l < rotas.at(i).size(); l++)
+				{
+					capacidade2 += nos.at(rotas.at(i).at(l))->demanda;
+				}
+				
+				//Testa se alguma das rotas têm a capacidade maior que a suportada pelo veículo;
+				if((capacidade1 > capacidadeVeiculo) || (capacidade2 > capacidadeVeiculo))
+				{
+					swap(rotas.at(i).at(j), rotas.at(auxRand).at(auxRand2)); //Se tiver, a troca entre de cidades entre as rotas é desfeita;
+					break;
+				}
+				else //Caso contrário, calcula o custo para as duas novas rotas;
+				{
+					for(int l = 0; l < rotas.at(i).size()-1; l++) //Calcula nova distância da primeira rota;
+					{
+						auxDistancia3 += nos.at(rotas.at(i).at(l))->distancias[rotas.at(i).at(l+1)];
+					}
+
+					for(int l = 0; l < rotas.at(auxRand).size()-1; l++) //Calcula nova distância da segunda rota;
+					{
+						auxDistancia4 += nos.at(rotas.at(auxRand).at(l))->distancias[rotas.at(auxRand).at(l+1)];
+					}
+				}
+
+				//Testa se a soma dos custos das rotas antigas é maior que a soma dos custos das novas rotas;
+				if((auxDistancia1 + auxDistancia2) >= (auxDistancia3 + auxDistancia4)) //Se for maior, a troca de cidades entre rotas é realmente feita;
+					continue;
+				else // Se não for, a troca é desfeita;
+					swap(rotas.at(i).at(j), rotas.at(auxRand).at(auxRand2));
+			}
+		}
+		k++;
+	}//Fim da busca tabu;
+	return rotas;
+}
+
 int main(void)
 {
  	//Inicializa a semente para geração de números randômicos;
@@ -320,6 +318,7 @@ int main(void)
 	Grafo* graf = new Grafo();
 	//Chama a função de ler arquivo e a partir dela todo o problema é resolvido;
 	graf->leArq();
-
+	float resultado = graf->resolve(graf->nos);
+	printf("\n%f", resultado);
 	return 0;
 }
